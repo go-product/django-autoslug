@@ -264,6 +264,14 @@ class AutoSlugFieldTestCase(TestCase):
         b = NonDeletableModelWithUniqueSlug.objects.create(name='My name')
         self.assertEqual(b.slug, 'my-name-2')
 
+    def test_autoslug_with_manager_name_empty_queryset(self):
+        a = NonDeletableModelWithUniqueSlugForDeleted.objects.create(name='My name')
+        assert a.deleted_slug == 'my-name'
+        b = NonDeletableModelWithUniqueSlugForDeleted.objects.create(name='My name')
+        assert b.deleted_slug == 'my-name'
+        a.delete()
+        c = NonDeletableModelWithUniqueSlugForDeleted.objects.create(name='My name')
+        assert c.deleted_slug == 'my-name-2'
     def test_deconstruct_with_manager(self):
         a = SharedSlugSpace(name='TestName')
         a.save()

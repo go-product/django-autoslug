@@ -163,16 +163,21 @@ class NonDeletedObjects(Manager):
         return super().get_queryset().filter(is_deleted=False)
 
 
+class DeletedObjects(Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=True)
+
 class AbstractModelWithCustomManager(Model):
     is_deleted = BooleanField(default=False)
 
     objects = NonDeletedObjects()
     all_objects = Manager()
+    deleted = DeletedObjects()
 
     class Meta:
         abstract = True
 
-    def delete(self, using=None):
+    def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.save()
 
@@ -180,3 +185,9 @@ class AbstractModelWithCustomManager(Model):
 class NonDeletableModelWithUniqueSlug(AbstractModelWithCustomManager):
     name = CharField(max_length=200)
     slug = AutoSlugField(populate_from='name', unique=True, manager_name='all_objects')
+
+
+class NonDeletableModelWithUniqueSlugForDeleted(AbstractModelWithCustomManager):
+    name = CharField(max_length=200)
+    slug = AutoSlugField(populate_from='name', unique=True, manager_name='all_objects')
+    deleted_slug = AutoSlugField(populate_from='name', manager_name='deleted')
